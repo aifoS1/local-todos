@@ -1,0 +1,30 @@
+.form-control {
+	display: inline-block;
+	width: 60%;
+}
+
+.todoForm {
+	
+	.section-content {
+		padding-top: 0;
+	}
+
+	h2 {
+		margin-bottom: 20px;
+	}
+
+	.addTodo {
+		display: inline-block;
+		background-color: #5f5d5d;
+		border: 2px solid;
+		border-radius: 10px;
+		color: #fff;
+		padding: 15px 15px;
+
+		&:hover, &:active {
+			color: #000;
+			background-color: #eee;
+			transition: 400ms all ease;
+		}
+	}
+}
