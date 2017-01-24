@@ -1,5 +1,5 @@
-# round_square
+# local-todos
 
-Uses the Foursquare API to fetch venue data, present results to user and plot venues on a google map using the Google Maps API.
+Uses localStorage with a localForage wrapper to create a key called 'todos' where the user can store their todo items.
 
-Includes es6 classes. Still need to configure webpack on top of babel in order to get classes to export/import and to fully compile to es5.
+Includes es6 classes.
