@@ -104,7 +104,7 @@ gulp.task('js', () => {
     .pipe(eslint.format())
     .pipe(eslint.failOnError())
     .pipe(concat('app.js'))
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(gulp.dest(dest + '/assets/scripts'))
     .pipe(browserSync.reload({stream:true})); // Fire Browsersync
 });

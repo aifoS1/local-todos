@@ -1,0 +1,17 @@
+.todoList {
+	&--list {
+		margin: 15px auto;
+		padding-left: 50px;
+    padding-right: 50px;
+    width: 40%;
+		
+		&-item {
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+
+		.completeBtn {
+			margin-left: 15px;
+		}
+	}
+}
