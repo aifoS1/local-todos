@@ -17,7 +17,7 @@ var localTodos = function (window, document, $, undefined) {
     localforage.getItem(dbName, function (err, todos) {
       for (var i = 0; i < todos.length; i++) {
         console.log('todos i ', todos[i]);
-        new TodoItem(todos[i]);
+        new TodoView(todos[i]);
       }
       if (err) {
         console.log("error when trying to load todos from local storage: ", err);
@@ -92,10 +92,10 @@ var localTodos = function (window, document, $, undefined) {
       _classCallCheck(this, Todo);
 
       this.todoArr = todoArray;
+      this._id = this.createID();
       this.complete = false;
       this.description = todo;
-      this.addTodo({ description: this.description, complete: this.complete });
-      this.markComplete();
+      this.createTodoObject();
     }
     //push new todo object into the todoArray, then set that item in local storage. Upon successful completion create a todo list item to append to DOM for client to see.
 
@@ -106,15 +106,28 @@ var localTodos = function (window, document, $, undefined) {
         this.todoArr.push(todo);
         localforage.setItem(dbName, this.todoArr).then(function (value) {
           console.log('todo array: ', value);
-          new TodoItem(todo);
+          new TodoView(todo);
         }.bind(this)).catch(function (err) {
           console.log("an error ocurred when saving to localstorage: ", err);
         });
       }
     }, {
-      key: 'markComplete',
-      value: function markComplete() {
-        $('.completeBtn').on('click', function (e) {});
+      key: 'createTodoObject',
+      value: function createTodoObject() {
+        var todo = {
+          _id: this._id,
+          description: this.description,
+          complete: this.complete
+        };
+        this.addTodo(todo);
+      }
+      //using time for ID because these IDs for simplicity.
+
+    }, {
+      key: 'createID',
+      value: function createID() {
+        var timestamp = Math.floor(Date.now() / 1000);
+        return timestamp;
       }
     }]);
 
@@ -124,28 +137,67 @@ var localTodos = function (window, document, $, undefined) {
   //create list item containing todo info and append to todolist on DOM
 
 
-  var TodoItem = function () {
-    function TodoItem(todo) {
-      _classCallCheck(this, TodoItem);
+  var TodoView = function () {
+    function TodoView(todo) {
+      _classCallCheck(this, TodoView);
 
       this.todo = todo;
       this.addTodoToList(this.todo);
+      this.markComplete();
     }
 
-    _createClass(TodoItem, [{
+    _createClass(TodoView, [{
       key: 'addTodoToList',
       value: function addTodoToList(todo) {
         var todoList = $('.todoList--list');
         todoList.append(this.createTodoListItem(todo));
       }
     }, {
+      key: 'markComplete',
+      value: function markComplete() {
+        var _this = this;
+        $('#' + this.todo._id).on('click', function (e) {
+          var todoID = $(this).attr('id');
+          // console.log($(this).attr('id'))
+          $(this).closest('li').remove();
+          _this.removeTodo(todoID);
+        });
+      }
+      //get todos from local storage than remove todo that matches ID of element marked completed then set local storage with updated array
+
+    }, {
+      key: 'removeTodo',
+      value: function removeTodo(todoID) {
+        localforage.getItem(dbName, function (err, val) {
+          var todosArr = val;
+          console.log(todoID);
+          todosArr.forEach(function (todo) {
+            if (todo['_id'] == todoID) {
+              todosArr.pop(todo);
+            }
+            console.log(todosArr);
+          });
+
+          if (err) {
+            console.log('there was an error when getting todoList for delete of todo: ', err);
+          }
+
+          localforage.setItem(dbName, todosArr, function (err, val) {
+            if (err) {
+              console.log('there was an error when updating todoList after delete of todo: ', err);
+            }
+            return;
+          });
+        });
+      }
+    }, {
       key: 'createTodoListItem',
       value: function createTodoListItem(todo) {
-        return '<li class="todoList--list-item" data-id="">' + todo.description + '<button id="mark-complete" class="completeBtn">Complete</button></li>';
+        return '<li class="todoList--list-item">' + todo.description + '<button class="completeBtn" id="' + todo._id + '">Complete</button></li>';
       }
     }]);
 
-    return TodoItem;
+    return TodoView;
   }();
 
   function init() {

@@ -14,7 +14,7 @@ var localTodos = (function (window, document, $, undefined) {
     localforage.getItem(dbName, function(err, todos) {
       for (var i = 0; i < todos.length; i ++) {
         console.log('todos i ', todos[i])
-         new TodoItem(todos[i]);
+         new TodoView(todos[i]);
       }
       if (err) {
         console.log("error when trying to load todos from local storage: ", err)
@@ -87,34 +87,44 @@ var localTodos = (function (window, document, $, undefined) {
   class Todo {
     constructor(todo, todoArray = todoArr) {
       this.todoArr = todoArray;
+      this._id = this.createID();
       this.complete = false;
       this.description = todo;
-      this.addTodo({description: this.description, complete: this.complete})
-      this.markComplete()
+      this.createTodoObject();
     }
     //push new todo object into the todoArray, then set that item in local storage. Upon successful completion create a todo list item to append to DOM for client to see.
     addTodo(todo){
       this.todoArr.push(todo)
       localforage.setItem(dbName, this.todoArr).then(function(value){
         console.log('todo array: ', value)
-        new TodoItem(todo);
+        new TodoView(todo);
       }.bind(this)).catch(function(err){
         console.log("an error ocurred when saving to localstorage: ", err)
       })
     }
 
-    markComplete(){
-      $('.completeBtn').on('click', function(e) {
-
-      })
+    createTodoObject(){
+      let todo = {
+                  _id: this._id, 
+                  description: this.description, 
+                  complete: this.complete
+                }
+      this.addTodo(todo)
+    }
+    //using time for ID because these IDs for simplicity.
+    createID(){
+      let timestamp = Math.floor(Date.now() / 1000)
+      return timestamp
     }
   }
 
 //create list item containing todo info and append to todolist on DOM
-  class TodoItem {
+  class TodoView {
     constructor(todo) {
       this.todo = todo
       this.addTodoToList(this.todo)
+      this.markComplete();
+      
     }
 
     addTodoToList(todo){
@@ -122,8 +132,42 @@ var localTodos = (function (window, document, $, undefined) {
       todoList.append(this.createTodoListItem(todo))      
     }
 
+    markComplete(){
+      var _this = this;
+      $('#' + this.todo._id).on('click', function(e) {
+         let todoID = $(this).attr('id')
+         // console.log($(this).attr('id'))
+         $(this).closest('li').remove()
+         _this.removeTodo(todoID)
+      })
+    }
+    //get todos from local storage than remove todo that matches ID of element marked completed then set local storage with updated array
+    removeTodo(todoID){
+      localforage.getItem(dbName, function(err, val){ 
+        var todosArr = val;
+        console.log(todoID)
+        todosArr.forEach(function(todo){
+          if (todo['_id'] == todoID) {
+            todosArr.pop(todo)
+          }
+          console.log(todosArr)
+        })
+
+        if (err) {
+          console.log('there was an error when getting todoList for delete of todo: ', err)
+        }
+
+        localforage.setItem(dbName, todosArr, function(err, val){
+          if (err) {
+            console.log('there was an error when updating todoList after delete of todo: ', err)
+          }
+          return
+        })
+      })
+    }
+
     createTodoListItem(todo) {  
-      return `<li class="todoList--list-item" data-id="">${todo.description}<button id="mark-complete" class="completeBtn">Complete</button></li>`
+      return `<li class="todoList--list-item">${todo.description}<button class="completeBtn" id="${todo._id}">Complete</button></li>`
     }
   }
 
@@ -141,4 +185,6 @@ var localTodos = (function (window, document, $, undefined) {
 
 
 localTodos.init();
+
+
 
